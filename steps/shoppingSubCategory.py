@@ -1,3 +1,4 @@
+import re
 import time
 
 from appium.webdriver.common.mobileby import MobileBy
@@ -6,7 +7,7 @@ from behave import given, when, then
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
-from uiautomator import device as uiAutomator
+from steps.commonSteps import step_check_sorting
 
 
 @then(u'user clicks on "{sub_category}" sub-category')
@@ -84,3 +85,54 @@ def step_validate_no_product_message(context, filter_type, filter_value):
     actions = TouchAction(context.browser)
     actions.tap(None, x=x, y=y).perform()
     time.sleep(2)
+
+
+@then(u'sort products with order "{sort_order}"')
+def step_sort_products(context, sort_order):
+    wait = WebDriverWait(context.browser, 50)
+
+    # Open Sort Modal
+    wait.until(EC.visibility_of_element_located((MobileBy.ID, "rs_sort_icon_header_btn")))
+    x = context.browser.find_element_by_id("rs_sort_icon_header_btn").location['x']
+    y = context.browser.find_element_by_id("rs_sort_icon_header_btn").location['y']
+    context.browser.find_element_by_id("rs_sort_icon_header_btn").click()
+
+    # Select Sorting Order
+    context.browser.find_element_by_android_uiautomator(
+        "new UiSelector().text(\"" + sort_order + "\")").click()
+    wait.until(EC.visibility_of_element_located((MobileBy.ID, "refinements_menu_popup_background")))
+
+    # Close Filter Modal
+    actions = TouchAction(context.browser)
+    actions.tap(None, x=x, y=y).perform()
+    time.sleep(2)
+
+
+@then(u'verify products have been sorted with order "{sort_order}"')
+def step_validate_product_sort_order(context, sort_order):
+    rates = []
+    wait = WebDriverWait(context.browser, 10)
+    wait.until(
+        EC.visibility_of_all_elements_located((MobileBy.ANDROID_UIAUTOMATOR, "new UiSelector().textContains(\"₹\")")))
+    elements = context.browser.find_elements_by_android_uiautomator(
+        "new UiSelector().textContains(\"₹\")")
+
+    for i in elements:
+        if "You Save" in i.text:
+            elements.remove(i)
+
+    for element in range(len(elements)):
+        print(elements[element].text)
+        product_price = re.sub('[^0-9]', '', elements[element].text)
+        rates.append(product_price)
+
+    print(rates)
+
+    if "Ascending" in sort_order:
+        sort_flag = step_check_sorting("ascending", rates)
+    elif "Descending" in sort_order:
+        sort_flag = step_check_sorting("descending", rates)
+
+    assert sort_flag, True
+
+

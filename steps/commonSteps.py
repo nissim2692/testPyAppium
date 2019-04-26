@@ -16,7 +16,6 @@ def step_impl(context):
 
 @then(u'user scrolls down the page on app')
 def scroll_down(context):
-
     size = context.browser.get_window_rect()
     x = (size['width'] * 0.5)
     y1 = (size['height'] * 0.5)
@@ -26,14 +25,12 @@ def scroll_down(context):
     actions.press(el=None, x=x, y=y1, pressure=None).move_to(el=None, x=x, y=y2).release().perform()
     actions.press(el=None, x=x, y=y1, pressure=None).move_to(el=None, x=x, y=y2).release().perform()
 
-
     time.sleep(5)
     print("Scroll down completed")
 
 
 @then(u'user scrolls up the page on app')
 def scroll_up(context):
-
     size = context.browser.get_window_rect()
     x = (size['width'] * 0.5)
     y1 = (size['height'] * 0.5)
@@ -43,6 +40,20 @@ def scroll_up(context):
     actions.press(el=None, x=x, y=y2, pressure=None).move_to(el=None, x=x, y=y1).release().perform()
     actions.press(el=None, x=x, y=y2, pressure=None).move_to(el=None, x=x, y=y1).release().perform()
 
-
     time.sleep(5)
     print("Scroll up completed")
+
+
+def step_check_sorting(sort_order, unsorted_list):
+    sorted_list = []
+
+    if sort_order == "ascending":
+        sorted_list = sorted(unsorted_list, reverse=False)
+
+    elif sort_order == "descending":
+        sorted_list = sorted(unsorted_list, reverse=True)
+
+    print("Unsorted List ", unsorted_list)
+    print("Sorted List ", sorted_list)
+
+    return unsorted_list == sorted_list
